@@ -38,7 +38,7 @@
 
         iframe {
             width: 100%;
-            height: calc(100vh - 80px);
+            height: 100%;
             border: none;
         }
 
@@ -114,22 +114,26 @@
 
     <!-- หน้าแสดง Google Form -->
     <div id="form-screen" class="hidden fixed inset-0 z-[60] bg-white flex flex-col">
+        <!-- Header -->
         <div class="h-16 bg-siriraj-blue flex items-center justify-between px-6 text-white shadow-lg">
             <span class="text-lg font-bold">แบบประเมินความพึงพอใจฝ่ายทรัพยากรบุคคล</span>
-            <!-- ปรับแก้ปุ่มยกเลิกให้เด่นชัดขึ้น: พื้นหลังสีทอง ตัวอักษรสีน้ำเงินเข้ม -->
             <button onclick="confirmReset()" class="bg-siriraj-gold text-siriraj-blue hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95">
                 ยกเลิกและกลับหน้าหลัก
             </button>
         </div>
         
-        <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden">
+        <!-- Iframe Container -->
+        <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden relative">
             <!-- Iframe Space -->
         </div>
 
-        <!-- แถบด้านล่างสำหรับรีเซ็ต -->
-        <div class="h-20 bg-white border-t border-gray-200 flex items-center justify-center p-3">
-            <button onclick="resetToHome()" class="w-full max-w-md bg-green-600 text-white h-full rounded-xl font-bold text-xl active:bg-green-700 shadow-lg flex items-center justify-center gap-2">
-                <span>เริ่มใหม่สำหรับท่านถัดไป (Clear Form)</span>
+        <!-- Footer Button: แสดงเฉพาะตอนส่งเสร็จ (ซ่อนไว้เป็นเริ่มต้น) -->
+        <div id="footer-reset" class="hidden h-24 bg-white border-t-2 border-green-100 flex items-center justify-center p-4 fade-in">
+            <button onclick="resetToHome()" class="w-full max-w-2xl bg-green-600 text-white h-full rounded-2xl font-bold text-2xl active:bg-green-700 shadow-[0_0_20px_rgba(22,163,74,0.4)] flex items-center justify-center gap-3 transition-all hover:scale-[1.02]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>บันทึกสำเร็จ | เริ่มใหม่สำหรับท่านถัดไป</span>
             </button>
         </div>
     </div>
@@ -167,12 +171,14 @@
         const selectionScreen = document.getElementById('selection-screen');
         const formScreen = document.getElementById('form-screen');
         const iframeContainer = document.getElementById('iframe-container');
+        const footerReset = document.getElementById('footer-reset');
         const countdownModal = document.getElementById('countdown-modal');
         const timerDisplay = document.getElementById('timer-number');
 
         function openForm(type) {
             selectionScreen.classList.add('hidden');
             formScreen.classList.remove('hidden');
+            footerReset.classList.add('hidden'); // มั่นใจว่าปุ่มเขียวถูกซ่อน
             loadCount = 0; 
             
             const frame = document.createElement('iframe');
@@ -188,9 +194,16 @@
 
         function handleFrameLoad() {
             loadCount++;
+            console.log("Form Loaded Count:", loadCount);
+            
             if (loadCount > 1) {
+                // หากมีการโหลดครั้งที่ 2 (เช่น กด Submit) 
+                // 1. แสดงปุ่มเขียวด้านล่าง
+                footerReset.classList.remove('hidden');
+                
+                // 2. ปรับเวลา Idle ให้สั้นลงเหลือ 15 วินาที เพื่อเช็คว่าเขาเดินไปหรือยัง
                 clearTimeout(idleTimer);
-                idleTimer = setTimeout(triggerCountdown, 10000);
+                idleTimer = setTimeout(triggerCountdown, 15000);
             }
         }
 
@@ -204,6 +217,7 @@
             selectionScreen.classList.remove('hidden');
             formScreen.classList.add('hidden');
             countdownModal.classList.add('hidden');
+            footerReset.classList.add('hidden');
             iframeContainer.innerHTML = ''; 
             stopIdleTimer();
             clearInterval(countdownInterval);
@@ -243,6 +257,7 @@
         }
 
         function handleUserInteraction() {
+            // ถ้ายืนยันว่าหน้าฟอร์มเปิดอยู่ และไม่มีหน้าต่างนับถอยหลังโชว์ ให้รีเซ็ตเวลา Idle
             if (!formScreen.classList.contains('hidden') && countdownModal.classList.contains('hidden')) {
                 startIdleTimer();
             }
