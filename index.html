@@ -36,6 +36,7 @@
             transform: rotate(180deg);
         }
 
+        /* Iframe ให้สูงเต็มพื้นที่ที่เหลือจาก Header */
         iframe {
             width: 100%;
             height: 100%;
@@ -112,9 +113,9 @@
         </div>
     </div>
 
-    <!-- หน้าแสดง Google Form -->
+    <!-- หน้าแสดง Google Form (ไม่มี Footer แล้ว) -->
     <div id="form-screen" class="hidden fixed inset-0 z-[60] bg-white flex flex-col">
-        <!-- Header -->
+        <!-- Header คงเดิมไว้พร้อมปุ่มทองที่เด่นชัดขึ้น -->
         <div class="h-16 bg-siriraj-blue flex items-center justify-between px-6 text-white shadow-lg">
             <span class="text-lg font-bold">แบบประเมินความพึงพอใจฝ่ายทรัพยากรบุคคล</span>
             <button onclick="confirmReset()" class="bg-siriraj-gold text-siriraj-blue hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95">
@@ -122,7 +123,7 @@
             </button>
         </div>
         
-        <!-- Iframe Container - แสดงผลเต็มพื้นที่ด้านล่าง Header -->
+        <!-- พื้นที่ Iframe แสดงผลยาวเต็มหน้าจอ -->
         <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden relative">
             <!-- Iframe Space -->
         </div>
@@ -130,7 +131,7 @@
 
     <!-- หน้าต่างแจ้งเตือนนับถอยหลัง (วาร์ปอัตโนมัติ) -->
     <div id="countdown-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center fade-in border-4 border-red-500">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-sm w-full text-center fade-in border-4 border-red-500">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">ไม่มีการตอบสนอง</h2>
             <p class="text-gray-600 mb-6 font-semibold">กำลังจะกลับหน้าหลักใน...</p>
             <div id="timer-number" class="text-8xl font-black text-red-600 mb-8">3</div>
