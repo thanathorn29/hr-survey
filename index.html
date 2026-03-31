@@ -44,6 +44,7 @@
 
         .text-gold { color: var(--siriraj-gold); }
         .bg-siriraj-blue { background-color: var(--siriraj-blue); }
+        .bg-siriraj-gold { background-color: var(--siriraj-gold); }
         
         /* Modal Style for Countdown */
         #countdown-modal {
@@ -115,7 +116,8 @@
     <div id="form-screen" class="hidden fixed inset-0 z-[60] bg-white flex flex-col">
         <div class="h-16 bg-siriraj-blue flex items-center justify-between px-6 text-white shadow-lg">
             <span class="text-lg font-bold">แบบประเมินความพึงพอใจฝ่ายทรัพยากรบุคคล</span>
-            <button onclick="confirmReset()" class="bg-white text-siriraj-blue hover:bg-gray-100 px-6 py-1 rounded-full text-sm font-bold transition-colors">
+            <!-- ปรับแก้ปุ่มยกเลิกให้เด่นชัดขึ้น: พื้นหลังสีทอง ตัวอักษรสีน้ำเงินเข้ม -->
+            <button onclick="confirmReset()" class="bg-siriraj-gold text-siriraj-blue hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95">
                 ยกเลิกและกลับหน้าหลัก
             </button>
         </div>
@@ -124,7 +126,7 @@
             <!-- Iframe Space -->
         </div>
 
-        <!-- แถบด้านล่างสำหรับรีเซ็ต (เผื่อคนถัดไปมาเจอหน้าค้าง) -->
+        <!-- แถบด้านล่างสำหรับรีเซ็ต -->
         <div class="h-20 bg-white border-t border-gray-200 flex items-center justify-center p-3">
             <button onclick="resetToHome()" class="w-full max-w-md bg-green-600 text-white h-full rounded-xl font-bold text-xl active:bg-green-700 shadow-lg flex items-center justify-center gap-2">
                 <span>เริ่มใหม่สำหรับท่านถัดไป (Clear Form)</span>
@@ -132,7 +134,7 @@
         </div>
     </div>
 
-    <!-- หน้าต่างแจ้งเตือนนับถอยหลัง (Countdown Modal) ปรับเป็น 3 วินาที -->
+    <!-- หน้าต่างแจ้งเตือนนับถอยหลัง -->
     <div id="countdown-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center fade-in border-4 border-red-500">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">ไม่มีการตอบสนอง</h2>
@@ -154,8 +156,8 @@
     <script>
         let idleTimer;
         let countdownInterval;
-        const IDLE_LIMIT = 60000; // 60 วินาที (เวลาที่จะรอการแตะหน้าจอ)
-        let loadCount = 0; // นับการโหลดของ Iframe
+        const IDLE_LIMIT = 60000; 
+        let loadCount = 0; 
 
         const FORMS = {
             internal: 'https://docs.google.com/forms/d/e/1FAIpQLScgU45KjBDUq2hGdgRBYWCGMqj0e85MhqPyjTlyOM3kOZ6kGw/viewform?embedded=true',
@@ -187,7 +189,6 @@
         function handleFrameLoad() {
             loadCount++;
             if (loadCount > 1) {
-                // หากตรวจพบการโหลดซ้ำ (เช่น กดส่ง) ปรับเวลา Idle เหลือเพียง 10 วินาที เพื่อเช็คความเคลื่อนไหว
                 clearTimeout(idleTimer);
                 idleTimer = setTimeout(triggerCountdown, 10000);
             }
@@ -221,7 +222,7 @@
 
         function triggerCountdown() {
             countdownModal.classList.remove('hidden');
-            let timeLeft = 3; // ปรับเหลือ 3 วินาที
+            let timeLeft = 3; 
             timerDisplay.innerText = timeLeft;
             
             clearInterval(countdownInterval);
