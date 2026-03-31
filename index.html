@@ -46,9 +46,9 @@
         .bg-siriraj-blue { background-color: var(--siriraj-blue); }
         .bg-siriraj-gold { background-color: var(--siriraj-gold); }
         
-        #countdown-modal, #finish-modal {
-            backdrop-filter: blur(6px);
-            background-color: rgba(0,0,0,0.6);
+        #countdown-modal {
+            backdrop-filter: blur(8px);
+            background-color: rgba(0,0,0,0.7);
         }
     </style>
 </head>
@@ -70,12 +70,12 @@
             </div>
             
             <div class="w-full max-w-2xl h-[2px] bg-[#1d6333] my-10 opacity-80"></div>
-            <h3 class="text-2xl font-bold text-gold mb-16 italic">โปรดเลือกสถานะของท่าน</h3>
+            <h3 class="text-2xl font-bold text-gold mb-16 italic">โปรดเลือกประเภทผู้รับบริการเพื่อเริ่มทำแบบประเมิน</h3>
 
-            <div class="flex flex-col gap-20 w-full max-w-lg">
+            <div class="flex flex-col gap-12 w-full max-w-lg">
                 <!-- Internal Personnel -->
-                <div onclick="openForm('internal')" class="btn-card group flex flex-col items-center">
-                    <div class="w-64 h-44 mb-6 flex items-end justify-center">
+                <div onclick="openForm('internal')" class="btn-card group flex flex-col items-center p-6 border-2 border-transparent hover:border-siriraj-gold rounded-3xl transition-all">
+                    <div class="w-48 h-32 mb-4 flex items-end justify-center">
                         <svg class="w-full h-full text-gray-700" viewBox="0 0 200 120" fill="currentColor">
                             <circle cx="100" cy="35" r="18" />
                             <path d="M75 110 v-30 c0-15 10-25 25-25 h0 c15 0 25 10 25 25 v30 H75" />
@@ -86,25 +86,21 @@
                         </svg>
                     </div>
                     <div class="text-center">
-                        <span class="text-2xl font-bold text-gold border-b-2 border-gold pb-1 inline-block">บุคลากรคณะแพทยศาสตร์ศิริราชพยาบาล</span>
+                        <span class="text-2xl font-bold text-siriraj-blue bg-siriraj-gold px-8 py-2 rounded-full inline-block">บุคลากรศิริราช</span>
                     </div>
                 </div>
 
                 <!-- External Personnel -->
-                <div onclick="openForm('external')" class="btn-card group flex flex-col items-center">
-                    <div class="w-64 h-44 mb-6 flex items-end justify-center">
+                <div onclick="openForm('external')" class="btn-card group flex flex-col items-center p-6 border-2 border-transparent hover:border-siriraj-gold rounded-3xl transition-all">
+                    <div class="w-48 h-32 mb-4 flex items-end justify-center">
                         <svg class="w-full h-full opacity-80" viewBox="0 0 200 120" fill="currentColor">
                             <rect x="75" y="20" width="50" height="50" rx="5" fill="#2c4e80" />
                             <rect x="40" y="70" width="50" height="50" rx="5" fill="#c5a021" />
                             <rect x="110" y="70" width="50" height="50" rx="5" fill="#7ba2cc" />
-                            <circle cx="100" cy="15" r="10" fill="#2c4e80" />
-                            <circle cx="65" cy="65" r="10" fill="#c5a021" />
-                            <circle cx="135" cy="65" r="10" fill="#7ba2cc" />
                         </svg>
                     </div>
                     <div class="text-center">
-                        <span class="text-2xl font-bold text-gold border-b-2 border-gold pb-1 inline-block">บุคลากรภายนอก</span>
-                        <p class="text-lg font-bold text-gold mt-2">บุคลากรพ้นสภาพ / ผู้เกษียณ / ผู้สมัครงาน / อื่น ๆ</p>
+                        <span class="text-2xl font-bold text-siriraj-blue bg-siriraj-gold px-8 py-2 rounded-full inline-block">บุคคลภายนอก</span>
                     </div>
                 </div>
             </div>
@@ -113,42 +109,29 @@
 
     <!-- Form Screen -->
     <div id="form-screen" class="hidden fixed inset-0 z-[60] bg-white flex flex-col">
-        <div class="h-16 bg-siriraj-blue flex items-center justify-between px-6 text-white shadow-lg">
-            <span class="text-lg font-bold">แบบประเมินความพึงพอใจฝ่ายทรัพยากรบุคคล</span>
+        <!-- Header -->
+        <div class="h-16 bg-siriraj-blue flex items-center justify-between px-6 text-white shadow-lg shrink-0">
+            <span class="text-lg font-bold">แบบประเมินฝ่ายทรัพยากรบุคคล</span>
             <button onclick="confirmReset()" class="bg-siriraj-gold text-siriraj-blue hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95">
-                ยกเลิกและกลับหน้าหลัก
+                กลับหน้าหลัก
             </button>
         </div>
         
+        <!-- Full Screen Form -->
         <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden relative">
-            <!-- Iframe Space -->
+            <!-- Iframe will be injected here -->
         </div>
     </div>
 
     <!-- Idle Countdown Modal -->
     <div id="countdown-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center fade-in border-4 border-red-500">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">ไม่มีการตอบสนอง</h2>
-            <p class="text-gray-600 mb-6 font-semibold">กำลังจะกลับหน้าหลักใน...</p>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">ไม่มีการใช้งาน</h2>
+            <p class="text-gray-600 mb-6 font-semibold">กำลังจะรีเซ็ตหน้าจอใน...</p>
             <div id="timer-number" class="text-8xl font-black text-red-600 mb-8">3</div>
             <button onclick="keepUsing()" class="w-full bg-siriraj-blue text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition-transform">
-                ทำแบบประเมินต่อ
+                ใช้งานต่อ
             </button>
-        </div>
-    </div>
-
-    <!-- Finish Success Modal -->
-    <div id="finish-modal" class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-sm w-full text-center fade-in border-4 border-green-500">
-            <div class="flex justify-center mb-4">
-                <svg class="w-20 h-20 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            </div>
-            <h2 class="text-3xl font-bold text-gray-800 mb-2">ส่งข้อมูลเรียบร้อย</h2>
-            <p class="text-gray-600 mb-6 font-semibold text-lg">ขอบคุณที่สละเวลาทำแบบประเมินครับ<br>ระบบจะกลับหน้าหลักอัตโนมัติใน...</p>
-            <div id="finish-timer" class="text-7xl font-black text-green-600 mb-6">5</div>
-            <button onclick="resetToHome()" class="text-siriraj-blue underline font-bold text-xl p-2">กลับหน้าหลักทันที</button>
         </div>
     </div>
 
@@ -162,8 +145,7 @@
     <script>
         let idleTimer;
         let countdownInterval;
-        let loadCount = 0; 
-        const IDLE_LIMIT = 60000; 
+        const IDLE_LIMIT = 50000; // ปรับเหลือ 50 วินาทีตามที่ต้องการ
 
         const FORMS = {
             internal: 'https://docs.google.com/forms/d/e/1FAIpQLScgU45KjBDUq2hGdgRBYWCGMqj0e85MhqPyjTlyOM3kOZ6kGw/viewform?embedded=true',
@@ -174,12 +156,9 @@
         const formScreen = document.getElementById('form-screen');
         const iframeContainer = document.getElementById('iframe-container');
         const countdownModal = document.getElementById('countdown-modal');
-        const finishModal = document.getElementById('finish-modal');
         const timerDisplay = document.getElementById('timer-number');
-        const finishDisplay = document.getElementById('finish-timer');
 
         function openForm(type) {
-            loadCount = 0; 
             selectionScreen.classList.add('hidden');
             formScreen.classList.remove('hidden');
             
@@ -187,47 +166,14 @@
             frame.id = "survey-frame";
             frame.src = FORMS[type];
             
-            // ใช้ Event Listener แทน onload attribute เพื่อความชัวร์
-            frame.addEventListener('load', handleFrameLoad);
-            
             iframeContainer.innerHTML = '';
             iframeContainer.appendChild(frame);
             
             startIdleTimer();
         }
 
-        function handleFrameLoad() {
-            loadCount++;
-            console.log("Form Loaded: Count " + loadCount);
-            
-            // โหลดครั้งแรก (1) คือหน้าคำถาม
-            // โหลดครั้งที่สอง (2) คือหน้าขอบคุณหลังจาก Submit
-            if (loadCount >= 2) {
-                showFinishCountdown();
-            }
-        }
-
-        function showFinishCountdown() {
-            // หยุดตัวนับ Idle ทันทีเมื่อถึงหน้าขอบคุณ
-            stopIdleTimer();
-            clearInterval(countdownInterval);
-            
-            finishModal.classList.remove('hidden');
-            let timeLeft = 5; 
-            finishDisplay.innerText = timeLeft;
-            
-            countdownInterval = setInterval(() => {
-                timeLeft--;
-                finishDisplay.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    resetToHome();
-                }
-            }, 1000);
-        }
-
         function confirmReset() {
-            if(confirm("ต้องการยกเลิกและกลับไปหน้าหลักหรือไม่?")) {
+            if(confirm("ต้องการกลับไปหน้าหลักหรือไม่?")) {
                 resetToHome();
             }
         }
@@ -236,17 +182,15 @@
             selectionScreen.classList.remove('hidden');
             formScreen.classList.add('hidden');
             countdownModal.classList.add('hidden');
-            finishModal.classList.add('hidden');
             iframeContainer.innerHTML = ''; 
             stopIdleTimer();
             clearInterval(countdownInterval);
-            loadCount = 0;
         }
 
         function startIdleTimer() {
             stopIdleTimer();
-            // ตรวจสอบว่าหน้าจอกำลังแสดงฟอร์ม และ ยังไม่แสดงหน้าขอบคุณ (Finish Modal)
-            if (!formScreen.classList.contains('hidden') && finishModal.classList.contains('hidden')) {
+            // รันเฉพาะเมื่อหน้าฟอร์มแสดงอยู่
+            if (!formScreen.classList.contains('hidden')) {
                 idleTimer = setTimeout(triggerCountdown, IDLE_LIMIT);
             }
         }
@@ -256,22 +200,19 @@
         }
 
         function triggerCountdown() {
-            // ตรวจสอบอีกครั้งก่อนแสดงหน้าจอ Idle
-            if (finishModal.classList.contains('hidden')) {
-                countdownModal.classList.remove('hidden');
-                let timeLeft = 3; 
+            countdownModal.classList.remove('hidden');
+            let timeLeft = 3; 
+            timerDisplay.innerText = timeLeft;
+            
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                timeLeft--;
                 timerDisplay.innerText = timeLeft;
-                
-                clearInterval(countdownInterval);
-                countdownInterval = setInterval(() => {
-                    timeLeft--;
-                    timerDisplay.innerText = timeLeft;
-                    if (timeLeft <= 0) {
-                        clearInterval(countdownInterval);
-                        resetToHome();
-                    }
-                }, 1000);
-            }
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    resetToHome();
+                }
+            }, 1000);
         }
 
         function keepUsing() {
@@ -281,15 +222,13 @@
         }
 
         function handleUserInteraction() {
-            // รีเซ็ต Idle Timer เฉพาะตอนที่กำลังทำฟอร์มอยู่เท่านั้น
-            if (!formScreen.classList.contains('hidden') && 
-                countdownModal.classList.contains('hidden') && 
-                finishModal.classList.contains('hidden')) {
+            // ถือว่ามีการแตะหน้าจอ ให้เริ่มนับ 50 วิใหม่
+            if (!formScreen.classList.contains('hidden') && countdownModal.classList.contains('hidden')) {
                 startIdleTimer();
             }
         }
 
-        // ดักจับการสัมผัสหรือพิมพ์เพื่อรีเซ็ตตัวนับ Idle
+        // ดักจับการแตะหน้าจอทุกรูปแบบ
         ['touchstart', 'mousedown', 'keydown'].forEach(evt => {
             window.addEventListener(evt, handleUserInteraction, true);
         });
