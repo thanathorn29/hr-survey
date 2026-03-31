@@ -122,27 +122,17 @@
             </button>
         </div>
         
-        <!-- Iframe Container -->
+        <!-- Iframe Container - แสดงผลเต็มพื้นที่ด้านล่าง Header -->
         <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden relative">
             <!-- Iframe Space -->
         </div>
-
-        <!-- Footer Button: แสดงเฉพาะตอนส่งเสร็จ (ซ่อนไว้เป็นเริ่มต้น) -->
-        <div id="footer-reset" class="hidden h-24 bg-white border-t-2 border-green-100 flex items-center justify-center p-4 fade-in">
-            <button onclick="resetToHome()" class="w-full max-w-2xl bg-green-600 text-white h-full rounded-2xl font-bold text-2xl active:bg-green-700 shadow-[0_0_20px_rgba(22,163,74,0.4)] flex items-center justify-center gap-3 transition-all hover:scale-[1.02]">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-                <span>บันทึกสำเร็จ | เริ่มใหม่สำหรับท่านถัดไป</span>
-            </button>
-        </div>
     </div>
 
-    <!-- หน้าต่างแจ้งเตือนนับถอยหลัง -->
+    <!-- หน้าต่างแจ้งเตือนนับถอยหลัง (วาร์ปอัตโนมัติ) -->
     <div id="countdown-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center fade-in border-4 border-red-500">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">ไม่มีการตอบสนอง</h2>
-            <p class="text-gray-600 mb-6 font-semibold">กำลังจะเริ่มใหม่ใน...</p>
+            <p class="text-gray-600 mb-6 font-semibold">กำลังจะกลับหน้าหลักใน...</p>
             <div id="timer-number" class="text-8xl font-black text-red-600 mb-8">3</div>
             <button onclick="keepUsing()" class="w-full bg-siriraj-blue text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition-transform">
                 ทำแบบประเมินต่อ
@@ -160,8 +150,7 @@
     <script>
         let idleTimer;
         let countdownInterval;
-        const IDLE_LIMIT = 60000; 
-        let loadCount = 0; 
+        const IDLE_LIMIT = 60000; // 60 วินาที
 
         const FORMS = {
             internal: 'https://docs.google.com/forms/d/e/1FAIpQLScgU45KjBDUq2hGdgRBYWCGMqj0e85MhqPyjTlyOM3kOZ6kGw/viewform?embedded=true',
@@ -171,40 +160,21 @@
         const selectionScreen = document.getElementById('selection-screen');
         const formScreen = document.getElementById('form-screen');
         const iframeContainer = document.getElementById('iframe-container');
-        const footerReset = document.getElementById('footer-reset');
         const countdownModal = document.getElementById('countdown-modal');
         const timerDisplay = document.getElementById('timer-number');
 
         function openForm(type) {
             selectionScreen.classList.add('hidden');
             formScreen.classList.remove('hidden');
-            footerReset.classList.add('hidden'); // มั่นใจว่าปุ่มเขียวถูกซ่อน
-            loadCount = 0; 
             
             const frame = document.createElement('iframe');
             frame.id = "survey-frame";
             frame.src = FORMS[type];
-            frame.onload = handleFrameLoad;
             
             iframeContainer.innerHTML = '';
             iframeContainer.appendChild(frame);
             
             startIdleTimer();
-        }
-
-        function handleFrameLoad() {
-            loadCount++;
-            console.log("Form Loaded Count:", loadCount);
-            
-            if (loadCount > 1) {
-                // หากมีการโหลดครั้งที่ 2 (เช่น กด Submit) 
-                // 1. แสดงปุ่มเขียวด้านล่าง
-                footerReset.classList.remove('hidden');
-                
-                // 2. ปรับเวลา Idle ให้สั้นลงเหลือ 15 วินาที เพื่อเช็คว่าเขาเดินไปหรือยัง
-                clearTimeout(idleTimer);
-                idleTimer = setTimeout(triggerCountdown, 15000);
-            }
         }
 
         function confirmReset() {
@@ -217,7 +187,6 @@
             selectionScreen.classList.remove('hidden');
             formScreen.classList.add('hidden');
             countdownModal.classList.add('hidden');
-            footerReset.classList.add('hidden');
             iframeContainer.innerHTML = ''; 
             stopIdleTimer();
             clearInterval(countdownInterval);
@@ -257,7 +226,6 @@
         }
 
         function handleUserInteraction() {
-            // ถ้ายืนยันว่าหน้าฟอร์มเปิดอยู่ และไม่มีหน้าต่างนับถอยหลังโชว์ ให้รีเซ็ตเวลา Idle
             if (!formScreen.classList.contains('hidden') && countdownModal.classList.contains('hidden')) {
                 startIdleTimer();
             }
