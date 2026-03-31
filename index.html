@@ -18,14 +18,10 @@
             background-color: #ffffff;
             color: #333;
         }
-        .fade-in { animation: fadeIn 0.5s ease-out; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        .btn-card {
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
+        .btn-card { transition: all 0.2s ease; cursor: pointer; }
         .btn-card:active { transform: scale(0.95); }
 
         .bg-decoration-top {
@@ -42,13 +38,18 @@
 
         iframe {
             width: 100%;
-            height: calc(100vh - 80px); /* ปรับความสูงให้เหลือพื้นที่ปุ่มด้านล่าง */
+            height: calc(100vh - 80px);
             border: none;
         }
 
         .text-gold { color: var(--siriraj-gold); }
         .bg-siriraj-blue { background-color: var(--siriraj-blue); }
-        .border-gold { border-color: var(--siriraj-gold); }
+        
+        /* Modal Style for Countdown */
+        #countdown-modal {
+            backdrop-filter: blur(6px);
+            background-color: rgba(0,0,0,0.6);
+        }
     </style>
 </head>
 <body class="h-screen w-screen m-0 p-0 flex flex-col">
@@ -69,8 +70,7 @@
             </div>
             
             <div class="w-full max-w-2xl h-[2px] bg-[#1d6333] my-10 opacity-80"></div>
-            
-            <h3 class="text-2xl font-bold text-gold mb-16">โปรดเลือกสถานะของท่าน</h3>
+            <h3 class="text-2xl font-bold text-gold mb-16 italic">โปรดเลือกสถานะของท่าน</h3>
 
             <div class="flex flex-col gap-20 w-full max-w-lg">
                 <!-- 1. บุคลากรภายใน -->
@@ -121,18 +121,30 @@
         </div>
         
         <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden">
-            <!-- Google Form Iframe -->
+            <!-- Iframe Space -->
         </div>
 
-        <!-- แถบด้านล่างสำหรับยืนยันการทำเสร็จ (ช่วยคนถัดไป) -->
-        <div class="h-16 bg-white border-t border-gray-200 flex items-center justify-center p-2">
-            <button onclick="resetToHome()" class="w-full max-w-sm bg-green-600 text-white h-full rounded-lg font-bold text-lg active:bg-green-700 shadow-md">
-                ส่งแบบประเมินเรียบร้อยแล้ว (เริ่มใหม่สำหรับท่านถัดไป)
+        <!-- แถบด้านล่างสำหรับรีเซ็ต (เผื่อคนถัดไปมาเจอหน้าค้าง) -->
+        <div class="h-20 bg-white border-t border-gray-200 flex items-center justify-center p-3">
+            <button onclick="resetToHome()" class="w-full max-w-md bg-green-600 text-white h-full rounded-xl font-bold text-xl active:bg-green-700 shadow-lg flex items-center justify-center gap-2">
+                <span>เริ่มใหม่สำหรับท่านถัดไป (Clear Form)</span>
             </button>
         </div>
     </div>
 
-    <!-- กราฟิกตกแต่งพื้นหลัง (มุมขวาล่าง) -->
+    <!-- หน้าต่างแจ้งเตือนนับถอยหลัง (Countdown Modal) ปรับเป็น 3 วินาที -->
+    <div id="countdown-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center fade-in border-4 border-red-500">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">ไม่มีการตอบสนอง</h2>
+            <p class="text-gray-600 mb-6 font-semibold">กำลังจะเริ่มใหม่ใน...</p>
+            <div id="timer-number" class="text-8xl font-black text-red-600 mb-8">3</div>
+            <button onclick="keepUsing()" class="w-full bg-siriraj-blue text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition-transform">
+                ทำแบบประเมินต่อ
+            </button>
+        </div>
+    </div>
+
+    <!-- กราฟิกตกแต่งส่วนล่าง -->
     <svg class="bg-decoration-bottom" viewBox="0 0 500 200" preserveAspectRatio="none">
         <polygon points="0,0 180,0 0,140" fill="#7ba2cc" opacity="0.3"/>
         <polygon points="0,0 120,0 0,100" fill="#2c4e80" opacity="0.7"/>
@@ -141,10 +153,10 @@
 
     <script>
         let idleTimer;
-        // ปรับเวลา Idle ให้สั้นลงหากอยู่ในหน้าฟอร์ม (เช่น 3 นาที) 
-        // แต่ถ้าคนทำเสร็จแล้วนิ่งไป เราจะเช็คบ่อยขึ้น
-        const FORM_IDLE_LIMIT = 60000 * 3; 
-        
+        let countdownInterval;
+        const IDLE_LIMIT = 60000; // 60 วินาที (เวลาที่จะรอการแตะหน้าจอ)
+        let loadCount = 0; // นับการโหลดของ Iframe
+
         const FORMS = {
             internal: 'https://docs.google.com/forms/d/e/1FAIpQLScgU45KjBDUq2hGdgRBYWCGMqj0e85MhqPyjTlyOM3kOZ6kGw/viewform?embedded=true',
             external: 'https://docs.google.com/forms/d/e/1FAIpQLScVFzY96LF5milwOrrh6X6EVObsWV-varXxA06aLsq1IUv6lA/viewform?embedded=true'
@@ -153,16 +165,36 @@
         const selectionScreen = document.getElementById('selection-screen');
         const formScreen = document.getElementById('form-screen');
         const iframeContainer = document.getElementById('iframe-container');
+        const countdownModal = document.getElementById('countdown-modal');
+        const timerDisplay = document.getElementById('timer-number');
 
         function openForm(type) {
             selectionScreen.classList.add('hidden');
             formScreen.classList.remove('hidden');
-            iframeContainer.innerHTML = `<iframe id="survey-frame" src="${FORMS[type]}">กำลังโหลด...</iframe>`;
+            loadCount = 0; 
+            
+            const frame = document.createElement('iframe');
+            frame.id = "survey-frame";
+            frame.src = FORMS[type];
+            frame.onload = handleFrameLoad;
+            
+            iframeContainer.innerHTML = '';
+            iframeContainer.appendChild(frame);
+            
             startIdleTimer();
         }
 
+        function handleFrameLoad() {
+            loadCount++;
+            if (loadCount > 1) {
+                // หากตรวจพบการโหลดซ้ำ (เช่น กดส่ง) ปรับเวลา Idle เหลือเพียง 10 วินาที เพื่อเช็คความเคลื่อนไหว
+                clearTimeout(idleTimer);
+                idleTimer = setTimeout(triggerCountdown, 10000);
+            }
+        }
+
         function confirmReset() {
-            if(confirm("ต้องการยกเลิกการทำแบบประเมินและกลับไปหน้าหลักหรือไม่?")) {
+            if(confirm("ต้องการยกเลิกและกลับไปหน้าหลักหรือไม่?")) {
                 resetToHome();
             }
         }
@@ -170,42 +202,53 @@
         function resetToHome() {
             selectionScreen.classList.remove('hidden');
             formScreen.classList.add('hidden');
+            countdownModal.classList.add('hidden');
             iframeContainer.innerHTML = ''; 
             stopIdleTimer();
-            // บังคับ Refresh หน้าเว็บเพื่อให้สะอาดที่สุด (GitHub Pages จะโหลดใหม่)
-            // location.reload(); // ปิดไว้ก่อนถ้าต้องการให้ลื่นไหล แต่ถ้าอยากล้าง Cache จริงๆ ให้เปิดบรรทัดนี้
+            clearInterval(countdownInterval);
         }
 
         function startIdleTimer() {
             stopIdleTimer();
-            idleTimer = setTimeout(() => {
-                if (!formScreen.classList.contains('hidden')) {
-                    resetToHome();
-                }
-            }, FORM_IDLE_LIMIT);
+            if (!formScreen.classList.contains('hidden')) {
+                idleTimer = setTimeout(triggerCountdown, IDLE_LIMIT);
+            }
         }
 
         function stopIdleTimer() {
             clearTimeout(idleTimer);
         }
 
-        function resetIdleTimer() {
-            if (formScreen.classList.contains('hidden')) {
+        function triggerCountdown() {
+            countdownModal.classList.remove('hidden');
+            let timeLeft = 3; // ปรับเหลือ 3 วินาที
+            timerDisplay.innerText = timeLeft;
+            
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    resetToHome();
+                }
+            }, 1000);
+        }
+
+        function keepUsing() {
+            countdownModal.classList.add('hidden');
+            clearInterval(countdownInterval);
+            startIdleTimer(); 
+        }
+
+        function handleUserInteraction() {
+            if (!formScreen.classList.contains('hidden') && countdownModal.classList.contains('hidden')) {
                 startIdleTimer();
             }
         }
 
-        // เพิ่มการตรวจจับกรณีคนส่งฟอร์มเสร็จแล้วนิ่งทิ้งไว้
-        // เราจะเช็คทุกๆ 10 วินาที ว่าหน้าจอถูกปล่อยทิ้งไว้นานแค่ไหน
-        setInterval(() => {
-            if (!formScreen.classList.contains('hidden')) {
-                // หากไม่มีการเคลื่อนไหวใดๆ เลย ระบบจะค่อยๆ ถอยหลัง
-                // (Fully Kiosk จะช่วยเสริมในส่วนนี้หากตั้ง Auto Reload on Idle ไว้ด้วย)
-            }
-        }, 10000);
-
-        ['touchstart', 'mousedown', 'scroll', 'keydown'].forEach(evt => {
-            window.addEventListener(evt, resetIdleTimer, true);
+        ['touchstart', 'mousedown', 'keydown'].forEach(evt => {
+            window.addEventListener(evt, handleUserInteraction, true);
         });
     </script>
 </body>
