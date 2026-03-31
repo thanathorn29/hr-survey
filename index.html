@@ -36,7 +36,6 @@
             transform: rotate(180deg);
         }
 
-        /* Iframe ให้สูงเต็มพื้นที่ที่เหลือจาก Header */
         iframe {
             width: 100%;
             height: 100%;
@@ -47,8 +46,7 @@
         .bg-siriraj-blue { background-color: var(--siriraj-blue); }
         .bg-siriraj-gold { background-color: var(--siriraj-gold); }
         
-        /* Modal Style for Countdown */
-        #countdown-modal {
+        #countdown-modal, #finish-modal {
             backdrop-filter: blur(6px);
             background-color: rgba(0,0,0,0.6);
         }
@@ -75,7 +73,6 @@
             <h3 class="text-2xl font-bold text-gold mb-16 italic">โปรดเลือกสถานะของท่าน</h3>
 
             <div class="flex flex-col gap-20 w-full max-w-lg">
-                <!-- 1. บุคลากรภายใน -->
                 <div onclick="openForm('internal')" class="btn-card group flex flex-col items-center">
                     <div class="w-64 h-44 mb-6 flex items-end justify-center">
                         <svg class="w-full h-full text-gray-700" viewBox="0 0 200 120" fill="currentColor">
@@ -92,7 +89,6 @@
                     </div>
                 </div>
 
-                <!-- 2. บุคคลภายนอก -->
                 <div onclick="openForm('external')" class="btn-card group flex flex-col items-center">
                     <div class="w-64 h-44 mb-6 flex items-end justify-center">
                         <svg class="w-full h-full opacity-80" viewBox="0 0 200 120" fill="currentColor">
@@ -113,9 +109,8 @@
         </div>
     </div>
 
-    <!-- หน้าแสดง Google Form (ไม่มี Footer แล้ว) -->
+    <!-- หน้าแสดง Google Form -->
     <div id="form-screen" class="hidden fixed inset-0 z-[60] bg-white flex flex-col">
-        <!-- Header คงเดิมไว้พร้อมปุ่มทองที่เด่นชัดขึ้น -->
         <div class="h-16 bg-siriraj-blue flex items-center justify-between px-6 text-white shadow-lg">
             <span class="text-lg font-bold">แบบประเมินความพึงพอใจฝ่ายทรัพยากรบุคคล</span>
             <button onclick="confirmReset()" class="bg-siriraj-gold text-siriraj-blue hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95">
@@ -123,21 +118,35 @@
             </button>
         </div>
         
-        <!-- พื้นที่ Iframe แสดงผลยาวเต็มหน้าจอ -->
         <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden relative">
             <!-- Iframe Space -->
         </div>
     </div>
 
-    <!-- หน้าต่างแจ้งเตือนนับถอยหลัง (วาร์ปอัตโนมัติ) -->
+    <!-- หน้าต่างแจ้งเตือนเมื่อไม่มีการตอบสนอง (Idle) -->
     <div id="countdown-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl p-8 max-sm w-full text-center fade-in border-4 border-red-500">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center fade-in border-4 border-red-500">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">ไม่มีการตอบสนอง</h2>
             <p class="text-gray-600 mb-6 font-semibold">กำลังจะกลับหน้าหลักใน...</p>
             <div id="timer-number" class="text-8xl font-black text-red-600 mb-8">3</div>
             <button onclick="keepUsing()" class="w-full bg-siriraj-blue text-white py-4 rounded-2xl font-bold text-xl shadow-lg active:scale-95 transition-transform">
                 ทำแบบประเมินต่อ
             </button>
+        </div>
+    </div>
+
+    <!-- หน้าต่างแจ้งเตือนเมื่อส่งแบบประเมินเสร็จ (Auto-Finish) -->
+    <div id="finish-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-sm w-full text-center fade-in border-4 border-green-500">
+            <div class="flex justify-center mb-4">
+                <svg class="w-20 h-20 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">ขอบคุณครับ</h2>
+            <p class="text-gray-600 mb-6 font-semibold">ระบบจะกลับสู่หน้าหลักโดยอัตโนมัติใน...</p>
+            <div id="finish-timer" class="text-7xl font-black text-green-600 mb-6">5</div>
+            <button onclick="resetToHome()" class="text-siriraj-blue underline font-bold">กลับหน้าหลักทันที</button>
         </div>
     </div>
 
@@ -151,7 +160,8 @@
     <script>
         let idleTimer;
         let countdownInterval;
-        const IDLE_LIMIT = 60000; // 60 วินาที
+        let loadCount = 0; // กลับมาใช้เพื่อนับการเปลี่ยนหน้าของ Google Form
+        const IDLE_LIMIT = 60000; 
 
         const FORMS = {
             internal: 'https://docs.google.com/forms/d/e/1FAIpQLScgU45KjBDUq2hGdgRBYWCGMqj0e85MhqPyjTlyOM3kOZ6kGw/viewform?embedded=true',
@@ -162,9 +172,12 @@
         const formScreen = document.getElementById('form-screen');
         const iframeContainer = document.getElementById('iframe-container');
         const countdownModal = document.getElementById('countdown-modal');
+        const finishModal = document.getElementById('finish-modal');
         const timerDisplay = document.getElementById('timer-number');
+        const finishDisplay = document.getElementById('finish-timer');
 
         function openForm(type) {
+            loadCount = 0; // รีเซ็ตตัวนับทุกครั้งที่เปิดฟอร์มใหม่
             selectionScreen.classList.add('hidden');
             formScreen.classList.remove('hidden');
             
@@ -172,10 +185,39 @@
             frame.id = "survey-frame";
             frame.src = FORMS[type];
             
+            // ดักจับการโหลด
+            frame.onload = handleFrameLoad;
+            
             iframeContainer.innerHTML = '';
             iframeContainer.appendChild(frame);
             
             startIdleTimer();
+        }
+
+        function handleFrameLoad() {
+            loadCount++;
+            // ปกติโหลดครั้งแรก = หน้าคำถาม (1)
+            // โหลดครั้งที่สอง = หน้าขอบคุณหลังจากกดส่ง (2)
+            if (loadCount >= 2) {
+                showFinishCountdown();
+            }
+        }
+
+        function showFinishCountdown() {
+            stopIdleTimer(); // หยุดตัวนับ 60 วิ
+            finishModal.classList.remove('hidden');
+            let timeLeft = 5; // ให้เวลาอ่านหน้าขอบคุณ 5 วินาที
+            finishDisplay.innerText = timeLeft;
+            
+            clearInterval(countdownInterval);
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                finishDisplay.innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    resetToHome();
+                }
+            }, 1000);
         }
 
         function confirmReset() {
@@ -188,14 +230,17 @@
             selectionScreen.classList.remove('hidden');
             formScreen.classList.add('hidden');
             countdownModal.classList.add('hidden');
+            finishModal.classList.add('hidden');
             iframeContainer.innerHTML = ''; 
             stopIdleTimer();
             clearInterval(countdownInterval);
+            loadCount = 0;
         }
 
         function startIdleTimer() {
             stopIdleTimer();
-            if (!formScreen.classList.contains('hidden')) {
+            // จะรัน Timer เฉพาะตอนที่หน้าฟอร์มเปิดอยู่ และยังไม่ได้ส่งฟอร์ม (Finish Modal ไม่โชว์)
+            if (!formScreen.classList.contains('hidden') && finishModal.classList.contains('hidden')) {
                 idleTimer = setTimeout(triggerCountdown, IDLE_LIMIT);
             }
         }
@@ -227,7 +272,7 @@
         }
 
         function handleUserInteraction() {
-            if (!formScreen.classList.contains('hidden') && countdownModal.classList.contains('hidden')) {
+            if (!formScreen.classList.contains('hidden') && countdownModal.classList.contains('hidden') && finishModal.classList.contains('hidden')) {
                 startIdleTimer();
             }
         }
