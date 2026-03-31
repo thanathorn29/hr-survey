@@ -21,6 +21,7 @@
             background-color: #ffffff;
             color: #333;
         }
+        /* ป้องกันการเลือกข้อความและการแสดงไฮไลท์เวลาแตะบน Kiosk */
         * {
             user-select: none;
             -webkit-tap-highlight-color: transparent;
@@ -69,7 +70,7 @@
         <polyline points="0,150 200,0" fill="none" stroke="#c5a021" stroke-width="3"/>
     </svg>
 
-    <!-- Selection Screen -->
+    <!-- Selection Screen (หน้าแรก) -->
     <div id="selection-screen" class="fixed inset-0 z-40 bg-white flex flex-col items-center justify-start pt-32 p-8 fade-in">
         <div class="z-10 w-full flex flex-col items-center">
             <div class="text-center mb-4">
@@ -81,7 +82,7 @@
             <h3 class="text-2xl font-bold text-gold mb-12 italic">โปรดเลือกสถานะของท่าน</h3>
 
             <div class="flex flex-col gap-16 w-full max-w-lg">
-                <!-- Internal Personnel -->
+                <!-- บุคลากรศิริราช -->
                 <div onclick="openForm('internal')" class="btn-card group flex flex-col items-center">
                     <div class="w-64 h-44 mb-4 flex items-end justify-center">
                         <svg class="w-full h-full text-gray-700" viewBox="0 0 200 120" fill="currentColor">
@@ -98,7 +99,7 @@
                     </div>
                 </div>
 
-                <!-- External Personnel -->
+                <!-- บุคคลภายนอก -->
                 <div onclick="openForm('external')" class="btn-card group flex flex-col items-center">
                     <div class="w-64 h-44 mb-4 flex items-end justify-center">
                         <svg class="w-full h-full opacity-80" viewBox="0 0 200 120" fill="currentColor">
@@ -119,18 +120,21 @@
         </div>
     </div>
 
-    <!-- Form Screen -->
+    <!-- Form Screen (หน้าแสดง Google Form) -->
     <div id="form-screen" class="hidden fixed inset-0 z-[60] bg-white flex flex-col">
+        <!-- Header -->
         <div class="h-16 bg-siriraj-blue flex items-center justify-between px-6 text-white shadow-lg shrink-0">
             <span class="text-lg font-bold">แบบประเมินความพึงพอใจฝ่ายทรัพยากรบุคคล</span>
             <button onclick="confirmReset()" class="bg-siriraj-gold text-siriraj-blue hover:opacity-90 px-6 py-2 rounded-full text-sm font-bold shadow-md transition-all active:scale-95">
                 ยกเลิกและกลับหน้าหลัก
             </button>
         </div>
+        
+        <!-- iFrame สำหรับโหลดฟอร์ม -->
         <div id="iframe-container" class="flex-grow bg-gray-100 overflow-hidden relative"></div>
     </div>
 
-    <!-- Idle Countdown Modal -->
+    <!-- Countdown Modal (หน้าจอแจ้งเตือนก่อนรีเฟรช) -->
     <div id="countdown-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-sm w-full text-center fade-in border-4 border-red-500">
             <h2 class="text-2xl font-bold text-gray-800 mb-2">ไม่มีการตอบสนอง</h2>
@@ -150,9 +154,9 @@
     </svg>
 
     <script>
-        // บังคับให้เบราว์เซอร์ไม่ใช้ cache ของเก่า
+        // ระบบ Version Control เพื่อบังคับล้าง Cache ใน Fully Kiosk
         window.onload = function() {
-            const version = "1.0.4"; // เปลี่ยนเลขเวอร์ชั่นเพื่อกระตุ้นให้โหลดใหม่
+            const version = "1.0.5"; 
             const currentStoredVersion = localStorage.getItem('app_version');
             if (currentStoredVersion !== version) {
                 localStorage.setItem('app_version', version);
@@ -162,7 +166,7 @@
 
         let idleTimer;
         let countdownInterval;
-        const IDLE_LIMIT = 50000;
+        const IDLE_LIMIT = 40000; // ปรับเวลาเป็น 40 วินาทีตามความต้องการล่าสุด
 
         const FORMS = {
             internal: 'https://docs.google.com/forms/d/e/1FAIpQLScgU45KjBDUq2hGdgRBYWCGMqj0e85MhqPyjTlyOM3kOZ6kGw/viewform?embedded=true',
@@ -181,6 +185,7 @@
             
             const frame = document.createElement('iframe');
             frame.id = "survey-frame";
+            // ป้องกัน Cache ในระดับ iFrame
             frame.src = FORMS[type] + "&v=" + new Date().getTime();
             
             iframeContainer.innerHTML = '';
@@ -206,6 +211,7 @@
 
         function startIdleTimer() {
             stopIdleTimer();
+            // เริ่มนับถอยหลังเฉพาะเมื่อหน้าจอแบบฟอร์มกำลังทำงานอยู่
             if (!formScreen.classList.contains('hidden')) {
                 idleTimer = setTimeout(triggerCountdown, IDLE_LIMIT);
             }
@@ -240,11 +246,13 @@
         }
 
         function handleUserInteraction() {
+            // เมื่อมีการสัมผัสหน้าจอ ให้รีเซ็ตการนับเวลา Idle ทันที
             if (!formScreen.classList.contains('hidden') && countdownModal.classList.contains('hidden')) {
                 startIdleTimer();
             }
         }
 
+        // ดักจับเหตุการณ์การสัมผัสหรือพิมพ์บนหน้าต่าง Browser
         ['touchstart', 'mousedown', 'keydown'].forEach(evt => {
             window.addEventListener(evt, handleUserInteraction, true);
         });
